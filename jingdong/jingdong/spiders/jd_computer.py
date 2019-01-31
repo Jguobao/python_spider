@@ -6,7 +6,7 @@ from copy import deepcopy
 
 class JdComputerSpider(scrapy.Spider):
     name = 'jd_computer'
-    allowed_domains = ['jd.com', "p.3.cn"]
+    allowed_domains = ['jd.com', "p.3.cn","list"]
     start_urls = ['https://list.jd.com/list.html?cat=670,671,672']
 
     def parse(self, response):
@@ -21,22 +21,19 @@ class JdComputerSpider(scrapy.Spider):
 
             # item["img"] = urljoin(item["img"], response.url)
             item["data_sku"] = li.xpath(".//div[@class='gl-i-wrap j-sku-item']/@data-sku").extract_first()
-            print(item)
-            # yield scrapy.Request(
-            #     "https://p.3.cn/prices/mgets?&ext=11101000&pin=&type=1&area=13_2900_2908_0&skuIds=J_{}".format(
-            #         item["data_sku"]),
-            #     callback=self.parse_notebook_price,
-            #     meta={"item": deepcopy(item)}
-            # )
+            # print(item)
+            yield scrapy.Request(
+                "https://p.3.cn/prices/mgets?&ext=11101000&pin=&type=1&area=13_2900_2908_0&skuIds=J_{}".format(
+                    item["data_sku"]),
+                callback=self.parse_notebook_price,
+                meta={"item": deepcopy(item)}
+            )
         next_url = response.xpath(".//div[@class='page clearfix']//a[@class = 'pn-next']/@href").extract_first()
         if next_url is not None:
             print("="*30)
-            next_url = "https:" + next_url
+            next_url = "https://list.jd.com" + next_url
             print(next_url)
-            yield scrapy.Request(
-                next_url,
-                callback=self.parse,
-            )
+            yield scrapy.Request(next_url,callback=self.parse,)
 
     def parse_notebook_price(self, response):
         item = response.meta["item"]
